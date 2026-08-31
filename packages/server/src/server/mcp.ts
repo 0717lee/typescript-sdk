@@ -673,9 +673,15 @@ export class McpServer {
             enable: () => registeredResource.update({ enabled: true }),
             remove: () => registeredResource.update({ uri: null }),
             update: updates => {
+                // The closure's `uri` tracks the current registry key, not the
+                // original — renaming reassigns it so later updates evict the
+                // live entry rather than the stale original key.
                 if (updates.uri !== undefined && updates.uri !== uri) {
                     delete this._registeredResources[uri];
-                    if (updates.uri) this._registeredResources[updates.uri] = registeredResource;
+                    if (updates.uri) {
+                        this._registeredResources[updates.uri] = registeredResource;
+                        uri = updates.uri;
+                    }
                 }
                 if (updates.name !== undefined) registeredResource.name = updates.name;
                 if (updates.title !== undefined) registeredResource.title = updates.title;
@@ -706,9 +712,15 @@ export class McpServer {
             enable: () => registeredResourceTemplate.update({ enabled: true }),
             remove: () => registeredResourceTemplate.update({ name: null }),
             update: updates => {
+                // The closure's `name` tracks the current registry key, not the
+                // original — renaming reassigns it so later updates evict the
+                // live entry rather than the stale original key.
                 if (updates.name !== undefined && updates.name !== name) {
                     delete this._registeredResourceTemplates[name];
-                    if (updates.name) this._registeredResourceTemplates[updates.name] = registeredResourceTemplate;
+                    if (updates.name) {
+                        this._registeredResourceTemplates[updates.name] = registeredResourceTemplate;
+                        name = updates.name;
+                    }
                 }
                 if (updates.title !== undefined) registeredResourceTemplate.title = updates.title;
                 if (updates.template !== undefined) registeredResourceTemplate.resourceTemplate = updates.template;
@@ -755,9 +767,15 @@ export class McpServer {
             enable: () => registeredPrompt.update({ enabled: true }),
             remove: () => registeredPrompt.update({ name: null }),
             update: updates => {
+                // The closure's `name` tracks the current registry key, not the
+                // original — renaming reassigns it so later updates (and handler
+                // regeneration) target the live entry, not the stale key.
                 if (updates.name !== undefined && updates.name !== name) {
                     delete this._registeredPrompts[name];
-                    if (updates.name) this._registeredPrompts[updates.name] = registeredPrompt;
+                    if (updates.name) {
+                        this._registeredPrompts[updates.name] = registeredPrompt;
+                        name = updates.name;
+                    }
                 }
                 if (updates.title !== undefined) registeredPrompt.title = updates.title;
                 if (updates.description !== undefined) registeredPrompt.description = updates.description;
